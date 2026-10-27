@@ -51,6 +51,9 @@ def init_db():
         
     conn.close()
 
+# ---> CRITICAL FIX: Run database initialization on startup for Gunicorn <---
+init_db()
+
 def analyze_readings(high_threshold=350):
     conn = sqlite3.connect(DB_NAME)
     query = """
@@ -175,5 +178,4 @@ def delete_reading(reading_id):
     return redirect(url_for('index'))
 
 if __name__ == "__main__":
-    init_db()  
     app.run(debug=True)
