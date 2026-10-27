@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Electricity Consumption Analysis System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>⚡ Electricity Consumption Analysis Dashboard</h2>
+            <p>Database-backed meter tracking, validation, rollover detection, and usage analytics</p>
+        </header>
+
+<!-- Form to Add New Reading & Type -->
+        <section class="card">
+            <h3>Record New Meter Reading & Type</h3>
+            <form action="/add_reading" method="POST">
+                <div class="form-group">
+                    <label>Meter ID / Code:</label>
+                    <input type="number" name="meter_id" placeholder="e.g., 1" required>
+                </div>
+                <div class="form-group">
+                    <label>Consumer Type:</label>
+                    <select name="consumer_type" required>
+                        <option value="Residential">Residential</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Industrial">Industrial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reading Date:</label>
+                    <input type="date" name="reading_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Cumulative kWh:</label>
+                    <input type="number" step="0.1" name="cumulative_kwh" placeholder="e.g., 1850.5" required>
+                </div>
+                <button type="submit">Save Reading</button>
+            </form>
+        </section>
+
+        <!-- Visualization Chart -->
+        <section class="card">
+            <h3>Usage Trend Visualization</h3>
+            <img src="{{ url_for('static', filename='charts/trend.png') }}" alt="Consumption Trend Chart" class="chart-img">
+        </section>
+
+        <!-- Analysis & Validation Report Table -->
+        <section class="card">
+            <h3>Reading-Validation & Consumption Report</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Meter Code</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Cumulative kWh</th>
+                        <th>Calculated kWh</th>
+                        <th>Rollover?</th>
+                        <th>Valid Chronology?</th>
+                        <th>Status</th>
+                        <th>Action</th> <!-- 1. ADD THIS HEADER HERE -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in records %}
+                    <tr>
+                        <td>{{ row.meter_code }}</td>
+                        <td>{{ row.consumer_type }}</td>
+                        <td>{{ row.reading_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ row.cumulative_kwh }}</td>
+                        <td><strong>{{ row.consumption_kwh | round(2) }}</strong></td>
+                        <td>{% if row.is_rollover %}<span class="badge rollover">Yes</span>{% else %}No{% endif %}</td>
+                        <td>{% if row.is_chronology_valid %}Valid{% else %}<span class="badge invalid">Invalid</span>{% endif %}</td>
+                        <td><span class="badge {{ 'alert' if 'FLAGGED' in row.high_usage_flag else 'normal' }}">{{ row.high_usage_flag }}</span></td>
+                        
+                        <!-- 2. ADD THIS ENTIRE CELL RIGHT HERE -->
+                        <td>
+                            <form action="{{ url_for('delete_reading', reading_id=row.reading_id) }}" method="POST" style="display:inline;">
+                                <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+                            </form>
+                        </td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+</body>
+</html>
